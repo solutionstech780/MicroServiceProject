@@ -101,7 +101,6 @@ services:
 
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
 
-
 volumes:
   mysql_data:
   redis_data:
