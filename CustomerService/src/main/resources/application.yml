@@ -1,0 +1,8 @@
+aws:
+  region: ${AWS_REGION:us-east-1}
+  s3:
+    bucket: ${AWS_S3_BUCKET}
+    # Must match the prefix used by your S3 -> Lambda event notification filter
+    key-prefix: uploads/
+    url-expiration-seconds: ${AWS_S3_URL_EXPIRATION_SECONDS:86400}
+
