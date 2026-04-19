@@ -35,4 +35,7 @@ public class Customer {
 
     @Column(nullable = false, unique = true)
     private String mobile;
+
+
+
 }
