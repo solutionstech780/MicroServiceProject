@@ -19,6 +19,21 @@ public class GlobalExceptionHandler {
                 return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(S3UploadException.class)
+    public ResponseEntity<APIErrorResponse> handleS3UploadException(S3UploadException ex) {
+        // If it's a validation-type issue, respond 400; otherwise treat it as an internal failure.
+        HttpStatus status = "File is missing or empty.".equals(ex.getMessage())
+                ? HttpStatus.BAD_REQUEST
+                : HttpStatus.INTERNAL_SERVER_ERROR;
+
+        APIErrorResponse error = new APIErrorResponse(
+                ex.getMessage(),
+                status.value(),
+                LocalDateTime.now()
+        );
+        return new ResponseEntity<>(error, status);
+    }
+
     @ExceptionHandler(CustomerNameNotFound.class)
     public ResponseEntity<APIErrorResponse> CustomerNameNotFoundException(CustomerNameNotFound ex){
         APIErrorResponse error = new APIErrorResponse(

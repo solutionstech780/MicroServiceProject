@@ -1,9 +1,9 @@
-# Windows-friendly Docker Compose for Microservices
 services:
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: elasticsearch
+    restart: always
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -12,12 +12,18 @@ services:
       - "9200:9200"
     volumes:
       - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      retries: 5
 
   logstash:
     image: docker.elastic.co/logstash/logstash:8.13.4
     container_name: logstash
+    restart: always
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     ports:
       - "5000:5000"
       - "9600:9600"
@@ -28,8 +34,10 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:8.13.4
     container_name: kibana
+    restart: always
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_healthy
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     ports:
@@ -38,6 +46,7 @@ services:
   eureka:
     image: eureka-server
     container_name: eureka
+    restart: always
     ports:
       - "8761:8761"
 
@@ -100,7 +109,7 @@ services:
       - eureka
       - logstash
     ports:
-      - "8081:8081"
+      - "8080:8081"
     environment:
       SPRING_APPLICATION_NAME: customer-service
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/bank
@@ -111,8 +120,16 @@ services:
       SPRING_REDIS_PASSWORD: Password123
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka:8761/eureka/
+
+      # AWS (no access keys; uses EC2 IAM role credentials)
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      AWS_S3_URL_EXPIRATION_SECONDS: ${AWS_S3_URL_EXPIRATION_SECONDS:-86400}
+
+      # ✅ YOUR EMAIL CONFIG (RESTORED)
       MAIL_USERNAME: solutionstech780@gmail.com
       MAIL_PASSWORD: zvpapsnlqqczfvwo
+
       LOGSTASH_HOST: logstash
       LOGSTASH_PORT: 5000
 
